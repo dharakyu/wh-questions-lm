@@ -33,8 +33,8 @@ def main():
 	parser = argparse.ArgumentParser(
 		description='Run ...')
 	parser.add_argument('--experiment_name', dest='experiment_name', default='')
-	parser.add_argument('--num_epochs', dest='num_epochs', default=2)
-	parser.add_argument('--learning_rate', dest='learning_rate', default=1e-05)
+	parser.add_argument('--num_epochs', dest='num_epochs', type=int, default=2)
+	parser.add_argument('--learning_rate', dest='learning_rate', type=float, default=1e-05)
 	opt = parser.parse_args()
 	print(opt)
 
