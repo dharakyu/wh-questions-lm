@@ -19,6 +19,9 @@ from torch.utils.data.dataloader import DataLoader
 from scipy.stats import wasserstein_distance
 from transformers import DistilBertTokenizerFast
 
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter()
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -59,7 +62,7 @@ class Trainer:
         loss_function = torch.nn.KLDivLoss(reduction='batchmean')
         optimizer = optim.AdamW(params=model.parameters(), lr=self.learning_rate)
 
-        def run_epoch(split):
+        def run_epoch(epoch, split):
             is_train = split == 'train'
             model.train(is_train)
             dataset = self.train_dataset if is_train else self.test_dataset
@@ -117,6 +120,7 @@ class Trainer:
                     # report progress
                     pbar.set_description(f"epoch {epoch+1} iter {it}: train loss {loss.item():.5f}.")
 
+            writer.add_scalar("Loss/train", np.mean(losses), epoch)
             if not is_train:
                 tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased')
                 distances = []
@@ -129,14 +133,21 @@ class Trainer:
                 #distance = wasserstein_distance(output, labels)
                 logger.info("test loss: %f", np.mean(losses))
                 logger.info("Wasserstein distance: %f", np.mean(distances))
+
+                writer.add_scalar("Loss/validation", np.mean(losses), epoch)
+                writer.add_scalar("Distance", np.mean(distances), epoch)
                 #print("test loss: %f", np.mean(losses))
                 #print("mean of Wasserstein distances: %f", np.mean(distances))
 
         #self.tokens = 0 # counter used for learning rate decay
+            
 
         for epoch in range(self.max_epochs):
-            run_epoch('train')
+            run_epoch(epoch, 'train')
             if self.test_dataset is not None:
-                run_epoch('test')
+                run_epoch(epoch, 'test')
 
             self.save_checkpoint()
+            
+        writer.flush()
+        writer.close()
