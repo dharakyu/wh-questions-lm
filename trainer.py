@@ -77,9 +77,9 @@ class Trainer:
                 # place data on the correct device
                 #x = x.to(self.device)
                 #y = y.to(self.device)
-                input_ids = data['input_ids']
-                attention_mask = data['attention_mask']
-                labels = data['labels']
+                input_ids = data['input_ids'].to(self.device)
+                attention_mask = data['attention_mask'].to(self.device)
+                labels = data['labels'].to(self.device)
 
                 # forward the model
                 with torch.set_grad_enabled(is_train):
