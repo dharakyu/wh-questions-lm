@@ -125,7 +125,7 @@ class Trainer:
                     #print(tokenizer.convert_tokens_to_string(tokens))
                     #print(output[index])
                     #print(labels[index])
-                    distances.append(wasserstein_distance(output[index].cpu(), labels[index]).cpu())
+                    distances.append(wasserstein_distance(output[index].cpu(), labels[index].cpu())
                 #distance = wasserstein_distance(output, labels)
                 logger.info("test loss: %f", np.mean(losses))
                 logger.info("Wasserstein distance: %f", np.mean(distances))
