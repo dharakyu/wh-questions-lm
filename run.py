@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from transformers import DistilBertTokenizerFast
 
 from dataset import WhQuestionsDataset
-from model import DistilBertForWhQuestionInference
+from models import DistilBertForWhQuestionInference, BertForWhQuestionInference
 from trainer import Trainer
 
 import numpy as np
@@ -35,6 +35,7 @@ def main():
 	parser.add_argument('--experiment_name', dest='experiment_name', default='')
 	parser.add_argument('--num_epochs', dest='num_epochs', type=int, default=2)
 	parser.add_argument('--learning_rate', dest='learning_rate', type=float, default=1e-05)
+	parser.add_argument('--model', dest='model', choices=['distilbert', 'bert'], default='distilbert')
 	opt = parser.parse_args()
 	print(opt)
 
@@ -55,7 +56,11 @@ def main():
 	val_dataset = WhQuestionsDataset(val_encodings, val_labels)
 	test_dataset = WhQuestionsDataset(test_encodings, test_labels)
 
-	model = DistilBertForWhQuestionInference()
+	model = None
+	if opt.model == 'distilbert':
+		model = DistilBertForWhQuestionInference()
+	else:
+		model = BertForWhQuestionInference()
 
 	trainer = Trainer(model, train_dataset, val_dataset, opt.learning_rate, opt.num_epochs,
 						opt.experiment_name)
