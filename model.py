@@ -6,7 +6,7 @@ class DistilBertForWhQuestionInference(torch.nn.Module):
 		super(DistilBertForWhQuestionInference, self).__init__()
 		self.l1 = DistilBertModel.from_pretrained('distilbert-base-uncased')
 		self.pre_classifier = torch.nn.Linear(768, 768)
-		self.dropout = torch.nn.Dropout(0.3)
+		self.dropout = torch.nn.Dropout(0.5)
 		self.classifier = torch.nn.Linear(768, 4)
 		self.softmax = torch.nn.Softmax(dim=1)
 
