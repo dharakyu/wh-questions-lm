@@ -9,6 +9,6 @@
   ```
   conda activate cs224nproject
   cd wh-questions-lm
-  tensorboard logdir=runs
+  tensorboard --logdir=runs
   ```
 3. In your browser, go to http://127.0.0.1:16006
