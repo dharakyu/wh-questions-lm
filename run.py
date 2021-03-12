@@ -33,8 +33,9 @@ def main():
 	parser = argparse.ArgumentParser(
 		description='Run ...')
 	parser.add_argument('--experiment_name', dest='experiment_name', default='')
-	parser.add_argument('--num_epochs', dest='num_epochs', type=int, default=2)
-	parser.add_argument('--learning_rate', dest='learning_rate', type=float, default=1e-05)
+	parser.add_argument('--num_epochs', dest='num_epochs', type=int, default=100)
+	parser.add_argument('--learning_rate', dest='learning_rate', type=float, default=1e-06)
+	parser.add_argument('--batch_size', dest='batch_size', type=int, default=32)
 	parser.add_argument('--model', dest='model', choices=['distilbert', 'bert'], default='distilbert')
 	opt = parser.parse_args()
 	print(opt)
@@ -63,7 +64,7 @@ def main():
 		model = BertForWhQuestionInference()
 
 	trainer = Trainer(model, train_dataset, val_dataset, opt.learning_rate, opt.num_epochs,
-						opt.experiment_name)
+						opt.batch_size, opt.experiment_name)
 	trainer.train()
 
 

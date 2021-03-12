@@ -32,14 +32,14 @@ logger = logging.getLogger(__name__)
 class Trainer:
 
     def __init__(self, model, train_dataset, test_dataset,
-                    learning_rate, max_epochs, experiment_name):
+                    learning_rate, max_epochs, batch_size, experiment_name):
         self.model = model
         self.train_dataset = train_dataset
         self.test_dataset = test_dataset
 
         self.learning_rate = learning_rate
         self.max_epochs = max_epochs
-        self.batch_size = 32
+        self.batch_size = batch_size
         self.ckpt_path = experiment_name + '_params'
         #self.log_softmax = torch.nn.LogSoftmax(dim=1)
 
