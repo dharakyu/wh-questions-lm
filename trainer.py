@@ -17,7 +17,7 @@ from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data.dataloader import DataLoader
 
 from scipy.stats import wasserstein_distance
-from transformers import DistilBertTokenizerFast
+from transformers import BertTokenizerFast
 
 from torch.utils.tensorboard import SummaryWriter
 writer = SummaryWriter()
@@ -122,7 +122,7 @@ class Trainer:
 
             writer.add_scalar("Loss/train", np.mean(losses), epoch)
             if not is_train:
-                tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased')
+                tokenizer = BertTokenizerFast.from_pretrained('bert-base-uncased')
                 distances = []
                 for index, item in enumerate(data['input_ids']):
                     tokens = tokenizer.convert_ids_to_tokens(item)

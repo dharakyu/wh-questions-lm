@@ -9,6 +9,7 @@ from utils import mkdir_p
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from utils import clean_sentence
 
 WH_WORDS = ['who', 'what', 'when', 'where', 'why', 'how']
 
@@ -72,8 +73,7 @@ def split_train_valid_test(seed_num, save_path, ratio=0.7, input='./corpus_data/
 
     for (k, values_dict) in ratings_dict.items():
         tgrep_ids.append(k)
-        cleaned_question = re.sub(r'\*\S*', '', question_dict[k])
-        cleaned_question = cleaned_question.replace('0', '')
+        cleaned_question = clean_sentence(question_dict[k])
         questions.append(cleaned_question)
         print(cleaned_question)
 
