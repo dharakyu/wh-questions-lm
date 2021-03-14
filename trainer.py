@@ -25,10 +25,6 @@ writer = SummaryWriter()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-#LEARNING_RATE = 1e-05
-#MAX_EPOCHS = 2
-#BATCH_SIZE = 32
-
 class Trainer:
 
     def __init__(self, model, train_dataset, test_dataset,
@@ -41,7 +37,6 @@ class Trainer:
         self.max_epochs = max_epochs
         self.batch_size = batch_size
         self.ckpt_path = experiment_name + '_params'
-        #self.log_softmax = torch.nn.LogSoftmax(dim=1)
 
         # take over whatever gpus are on the system
         self.device = 'cpu'
@@ -66,27 +61,25 @@ class Trainer:
             is_train = split == 'train'
             model.train(is_train)
             dataset = self.train_dataset if is_train else self.test_dataset
-            #print(len(dataset))
             loader = DataLoader(dataset, batch_size=self.batch_size)
-            #print(BATCH_SIZE)
-            #print(len(loader))
 
             losses = []
+            outputs = []
+            all_labels = []
             pbar = tqdm(enumerate(loader), total=len(loader)) if is_train else enumerate(loader)
-            #print(enumerate(loader))
+
             for it, data in pbar:
-                #thing = thing.to(self.device)
-                #print(thing)
                 # place data on the correct device
-                #x = x.to(self.device)
-                #y = y.to(self.device)
                 input_ids = data['input_ids'].to(self.device)
                 attention_mask = data['attention_mask'].to(self.device)
                 labels = data['labels'].to(self.device)
+                all_labels.extend(labels)
 
                 # forward the model
                 with torch.set_grad_enabled(is_train):
                     output = model(input_ids, attention_mask)
+                    outputs.extend(output)
+
                     logits = torch.log(output)
                     loss = loss_function(logits, labels)
                     losses.append(loss.item())
@@ -99,48 +92,26 @@ class Trainer:
                     torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
                     optimizer.step()
 
-                    # decay the learning rate based on our progress
-                    '''
-                    if config.lr_decay:
-                        self.tokens += (y >= 0).sum() # number of tokens processed this step (i.e. label is not -100)
-                        if self.tokens < config.warmup_tokens:
-                            # linear warmup
-                            lr_mult = float(self.tokens) / float(max(1, config.warmup_tokens))
-                        else:
-                            # cosine learning rate decay
-                            progress = float(self.tokens - config.warmup_tokens) / float(max(1, config.final_tokens - config.warmup_tokens))
-                            lr_mult = max(0.1, 0.5 * (1.0 + math.cos(math.pi * progress)))
-                        lr = config.learning_rate * lr_mult
-                        for param_group in optimizer.param_groups:
-                            param_group['lr'] = lr
-                    else:
-                        lr = config.learning_rate
-                    '''
-
                     # report progress
                     pbar.set_description(f"epoch {epoch+1} iter {it}: train loss {loss.item():.5f}.")
 
             writer.add_scalar("Loss/train", np.mean(losses), epoch)
+
             if not is_train:
+                # sanity check
+                assert(len(outputs) == len(all_labels))
+
                 tokenizer = BertTokenizerFast.from_pretrained('bert-base-uncased')
                 distances = []
-                for index, item in enumerate(data['input_ids']):
-                    tokens = tokenizer.convert_ids_to_tokens(item)
-                    #print(tokenizer.convert_tokens_to_string(tokens))
-                    #print(output[index])
-                    #print(labels[index])
-                    distances.append(wasserstein_distance(output[index].cpu(), labels[index].cpu()))
-                #distance = wasserstein_distance(output, labels)
+
+                for i in range(len(outputs)):
+                    distances.append(wasserstein_distance(outputs[i].cpu(), all_labels[i].cpu()))
+
                 logger.info("test loss: %f", np.mean(losses))
                 logger.info("Wasserstein distance: %f", np.mean(distances))
 
                 writer.add_scalar("Loss/validation", np.mean(losses), epoch)
                 writer.add_scalar("Distance", np.mean(distances), epoch)
-                #print("test loss: %f", np.mean(losses))
-                #print("mean of Wasserstein distances: %f", np.mean(distances))
-
-        #self.tokens = 0 # counter used for learning rate decay
-            
 
         for epoch in range(self.max_epochs):
             run_epoch(epoch, 'train')
