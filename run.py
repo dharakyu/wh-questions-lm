@@ -43,7 +43,7 @@ def main():
 		if opt.experiment_name == '':
 			opt.experiment_name = datetime.now().strftime('%m_%d_%H_%M')
 
-		train_path = os.path.join(opt.path_to_datasets, 'tiny_db.csv')
+		train_path = os.path.join(opt.path_to_datasets, 'train_db.csv')
 		valid_path = os.path.join(opt.path_to_datasets, 'valid_db.csv')
 		test_path = os.path.join(opt.path_to_datasets, 'test_db.csv')
 
