@@ -34,7 +34,7 @@ def main():
 			cleaned_context = format_context(context)
 			contexts.append(cleaned_context)
 		df['PrecedingContext'] = contexts
-		df.to_csv('datasets/wh-questions-3/' + file + '_db.csv', sep='\t')
+		df.to_csv('datasets/wh-questions-question-context/' + file + '_db.csv', sep='\t')
 
 
 

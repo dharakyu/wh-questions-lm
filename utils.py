@@ -22,7 +22,8 @@ def clean_sentence(sentence):
 
 def format_context(dialogue):
 	"""Format a context dialogue, indicating alternating speakers with [SEP] token"""
-	cleaned_dialogue = re.sub(r'speaker[a-z][0-9][0-9]?[0-9]?\.', ' [SEP] ', dialogue)
+	#cleaned_dialogue = re.sub(r'speaker[a-z][0-9][0-9]?[0-9]?\.', ' [SEP] ', dialogue)
+	cleaned_dialogue = re.sub(r'speaker[a-z][0-9][0-9]?[0-9]?\.', '', dialogue)
 	cleaned_dialogue = cleaned_dialogue.replace('###', '')
 	cleaned_dialogue = clean_sentence(cleaned_dialogue)
 
@@ -50,7 +51,7 @@ def read_dataset_split_with_context(path_to_dataset):
 	contexts = list(df['PrecedingContext'])
 	sentences = list(df['Question'])
 
-	dialogues = [contexts[i] + sentences[i] for i in range(len(contexts))]
+	dialogues = [sentences[i] + ' [SEP] ' + contexts[i] for i in range(len(contexts))]
 
 	every_probs = list(df['Every'])
 	a_probs = list(df['A'])

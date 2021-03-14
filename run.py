@@ -15,6 +15,7 @@ import numpy as np
 from scipy.stats import wasserstein_distance
 
 import torch
+from torch.utils.data.dataloader import DataLoader
 
 from utils import *
 
@@ -34,10 +35,14 @@ def main():
 	opt = parser.parse_args()
 	print(opt)
 
+	# initialize model
 	if opt.model == 'distilbert':
 		model = DistilBertForWhQuestionInference()
 	else:
 		model = BertForWhQuestionInference()
+
+	# initialize tokenizer
+	tokenizer = BertTokenizerFast.from_pretrained('bert-base-uncased')
 
 	if opt.mode == 'train':
 		if opt.experiment_name == '':
@@ -56,8 +61,7 @@ def main():
 			val_sentences, val_labels = read_dataset_split_sentence_only(valid_path)
 			test_sentences, test_labels = read_dataset_split_sentence_only(test_path)
 
-		tokenizer = BertTokenizerFast.from_pretrained('bert-base-uncased')
-
+		print(train_sentences)
 		train_encodings = tokenizer(train_sentences, truncation=True, padding=True)
 		val_encodings = tokenizer(val_sentences, truncation=True, padding=True)
 		test_encodings = tokenizer(test_sentences, truncation=True, padding=True)
@@ -81,15 +85,67 @@ def main():
 		eval_encodings = tokenizer(eval_sentences, truncation=True, padding=True)
 		eval_dataset = WhQuestionsDataset(eval_encodings, eval_labels)
 
+
 		# check if we're on a gpu
 		if torch.cuda.is_available():
 			device = torch.cuda.current_device()
 			model = torch.nn.DataParallel(model).to(device)
+		else:
+			device = torch.device("cpu")
 
 		model.eval()
-		loader = DataLoader(dataset, batch_size=opt.batch_size)
+		loader = DataLoader(eval_dataset, batch_size=opt.batch_size)
 
+		encodings = []
+		outputs = []
+		all_labels = []
+		distances = []
 
+		for it, data in enumerate(loader):
+			# place data on the correct device
+			input_ids = data['input_ids'].to(device)
+			encodings.extend(input_ids)
+
+			attention_mask = data['attention_mask'].to(device)
+			labels = data['labels'].to(device)
+			all_labels.extend(labels)
+
+			with torch.no_grad():
+				output = model(input_ids, attention_mask)
+				outputs.extend(output)
+		
+		mkdir_p('outputs_for_analysis')
+
+		rows = []
+		sentences = []
+		for i in range(len(all_labels)):
+			distances.append(wasserstein_distance(outputs[i].cpu(), all_labels[i].cpu()))
+			tokens = tokenizer.convert_ids_to_tokens(encodings[i])
+			sentence = tokenizer.convert_tokens_to_string(tokens)
+			sentence = sentence.replace('[CLS]', '')
+			sentence = sentence.replace('[PAD]', '')
+			sentence = sentence.replace('[SEP]', '')
+			sentences.append(sentence)
+			rounded_output = str([round(i, 4) for i in outputs[i].tolist()])
+			rounded_label = str([round(i, 4) for i in all_labels[i].tolist()])
+			row = sentence + '\t' + rounded_output + '\t' + rounded_label + '\t' + str(distances[i]) + '\n'
+			rows.append(row)
+			if i % 20 == 0:
+				print('sentence:\n', sentence)
+				print('prediction:\n', outputs[i])
+				print('gold:\n', all_labels[i])
+				print('distance:\n', distances[i])
+				print('------')
+
+		print('Wasserstein distance:', np.mean(distances))
+
+		write_path = os.path.join('outputs_for_analysis', opt.path_to_params + '_' + opt.eval_dataset + '_db.csv')
+		f = open(write_path, 'w')
+		head_line = "Sentence\tOutput\tLabel\tDistance\n"
+		f.write(head_line)
+		for row in rows:
+			f.write(row)
+		f.close()
 
 
 if __name__ == '__main__':
