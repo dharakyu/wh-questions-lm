@@ -1,0 +1,90 @@
+sentence:
+  so, uh, what things do you consider an invasion of privacy?                                      
+prediction:
+ tensor([0.2950, 0.3198, 0.2712, 0.1139])
+gold:
+ tensor([0.6524, 0.2414, 0.0652, 0.0410])
+distance:
+ 0.16627493035048246
+------
+sentence:
+  where is it going to be                                              
+prediction:
+ tensor([0.1362, 0.1139, 0.6299, 0.1200])
+gold:
+ tensor([5.0000e-04, 1.7500e-02, 9.7450e-01, 7.5000e-03])
+distance:
+ 0.17230527837818954
+------
+sentence:
+  so what's the prevailing thought within the community?                                         
+prediction:
+ tensor([0.2151, 0.2161, 0.4368, 0.1320])
+gold:
+ tensor([0.1190, 0.0362, 0.8124, 0.0324])
+distance:
+ 0.18778110947459936
+------
+sentence:
+  uh, what do you feel about come of the things that need to,                                     
+prediction:
+ tensor([0.3160, 0.2333, 0.2909, 0.1598])
+gold:
+ tensor([0.0611, 0.1295, 0.1458, 0.6637])
+distance:
+ 0.17382627818733454
+------
+sentence:
+  why don't you start                                              
+prediction:
+ tensor([0.1510, 0.2238, 0.2884, 0.3369])
+gold:
+ tensor([0.0253, 0.1011, 0.1742, 0.6995])
+distance:
+ 0.18130198353901505
+------
+sentence:
+  who's your favorite actress or actor                                            
+prediction:
+ tensor([0.1853, 0.1566, 0.5320, 0.1261])
+gold:
+ tensor([0.0010, 0.0815, 0.9175, 0.0000])
+distance:
+ 0.19276381892268546
+------
+sentence:
+  what vacation have you enjoyed the most?                                            
+prediction:
+ tensor([0.2638, 0.3050, 0.3282, 0.1030])
+gold:
+ tensor([0.0611, 0.0506, 0.7411, 0.1467])
+distance:
+ 0.20659092906862497
+------
+sentence:
+  why don't you go first                                             
+prediction:
+ tensor([0.2073, 0.2077, 0.2738, 0.3112])
+gold:
+ tensor([0.1106, 0.0967, 0.0922, 0.7006])
+distance:
+ 0.19466864317655563
+------
+sentence:
+  so, what's the latest one you've read                                        
+prediction:
+ tensor([0.3974, 0.2097, 0.3282, 0.0647])
+gold:
+ tensor([0.0173, 0.0382, 0.7855, 0.1591])
+distance:
+ 0.1940264548175037
+------
+sentence:
+  well, what did you have for lunch?                                           
+prediction:
+ tensor([0.2959, 0.2944, 0.3475, 0.0622])
+gold:
+ tensor([0.1837, 0.0642, 0.7400, 0.0116])
+distance:
+ 0.19637391902506351
+------

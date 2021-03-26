@@ -27,11 +27,12 @@ def main():
 	parser.add_argument('--num_epochs', dest='num_epochs', type=int, default=2)
 	parser.add_argument('--learning_rate', dest='learning_rate', type=float, default=1e-06)
 	parser.add_argument('--batch_size', dest='batch_size', type=int, default=32)
-	parser.add_argument('--model', dest='model', choices=['distilbert', 'bert'], default='distilbert')
+	parser.add_argument('--model', dest='model', choices=['distilbert', 'bert'], default='bert')
 	parser.add_argument('--use_context', dest='use_context', action='store_true')
-	parser.add_argument('--path_to_datasets', dest='path_to_datasets', default=os.path.join('datasets', 'wh-questions-3'))
+	parser.add_argument('--path_to_datasets', dest='path_to_datasets', default=os.path.join('datasets', 'wh-questions-question-context'))
 	parser.add_argument('--path_to_params', dest='path_to_params')
-	parser.add_argument('--eval_dataset', dest='eval_dataset', default='valid')
+	parser.add_argument('--eval_dataset', dest='eval_dataset', choices=['test', 'valid'], default='valid')
+	parser.add_argument('--write_to_file', dest='write_to_file', action='store_true')
 	opt = parser.parse_args()
 	print(opt)
 
@@ -75,6 +76,9 @@ def main():
 		trainer.train()
 	
 	else:
+		# load params from a model we already trained
+		model.load_state_dict(torch.load(opt.path_to_params, map_location=torch.device('cpu')))
+
 		eval_path = os.path.join(opt.path_to_datasets, opt.eval_dataset + '_db.csv')
 
 		if opt.use_context:
@@ -138,14 +142,22 @@ def main():
 				print('------')
 
 		print('Wasserstein distance:', np.mean(distances))
+		for i in range(4):
+			predictions = [row[i] for row in outputs]
+			labels = [row[i] for row in all_labels]
+			print(np.corrcoef(predictions, labels)[0, 1])
 
-		write_path = os.path.join('outputs_for_analysis', opt.path_to_params + '_' + opt.eval_dataset + '_db.csv')
-		f = open(write_path, 'w')
-		head_line = "Sentence\tOutput\tLabel\tDistance\n"
-		f.write(head_line)
-		for row in rows:
-			f.write(row)
-		f.close()
+		if opt.write_to_file:
+			if opt.use_context:
+				write_path = os.path.join('outputs_for_analysis', opt.path_to_params + '_with_context_' + opt.eval_dataset + '_db.csv')
+			else:
+				write_path = os.path.join('outputs_for_analysis', opt.path_to_params + '_' + opt.eval_dataset + '_db.csv')
+			f = open(write_path, 'w')
+			head_line = "Sentence\tOutput\tLabel\tDistance\n"
+			f.write(head_line)
+			for row in rows:
+				f.write(row)
+			f.close()
 
 
 if __name__ == '__main__':

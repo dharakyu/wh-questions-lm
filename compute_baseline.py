@@ -18,7 +18,7 @@ def compute_baseline(dataset):
 	for i in range(len(labels)):
 		distances.append(wasserstein_distance(baseline, labels[i]))
 
-	#print(baseline)
+	print(baseline)
 	print(np.mean(distances))
 
 def main():

@@ -13,7 +13,7 @@ from utils import clean_sentence
 
 WH_WORDS = ['who', 'what', 'when', 'where', 'why', 'how']
 
-def split_train_valid_test(seed_num, save_path, ratio=0.7, input='./corpus_data/lm_data.csv',
+def split_train_valid_test(seed_num, save_path, ratio=0.7, input='./corpus_data/lm_data_cleaned.csv',
                      verbose=True):
     """Split the corpus into training and test sets with a given split ratio
 
@@ -43,11 +43,11 @@ def split_train_valid_test(seed_num, save_path, ratio=0.7, input='./corpus_data/
 
         curr_df = input_df[input_df['tgrep_id'] == unique_id]
         question_dict[unique_id] = curr_df['Question'].tolist()[0]
-        #print(sentence_dict[unique_id])
+
         paraphrases_to_rating = curr_df[['paraphrase', 'rating']].groupby('paraphrase')['rating'].apply(list).to_dict()
         paraphrases_to_modal_present = curr_df[['paraphrase', 'ModalPresent']].groupby('paraphrase')['ModalPresent'].apply(list).to_dict()
         paraphrases_to_wh = curr_df[['paraphrase', 'Wh']].groupby('paraphrase')['Wh'].apply(list).to_dict()
-        #print(paraphrase_to_rating)
+
         ratings_dict[unique_id] = paraphrases_to_rating
         modal_present_dict[unique_id] = paraphrases_to_modal_present
         wh_dict[unique_id] = paraphrases_to_wh
@@ -75,16 +75,15 @@ def split_train_valid_test(seed_num, save_path, ratio=0.7, input='./corpus_data/
         tgrep_ids.append(k)
         cleaned_question = clean_sentence(question_dict[k])
         questions.append(cleaned_question)
-        print(cleaned_question)
 
         for item in values_dict:
-            if " every " in item:
+            if "all" == item:
                 every_avgs.append(np.mean(np.array(values_dict[item])))
                 count_every += 1
-            elif " a " in item:
+            elif "a" == item:
                 a_avgs.append(np.mean(np.array(values_dict[item])))
                 count_a += 1
-            elif " the " in item:
+            elif "the" == item:
                 the_avgs.append(np.mean(np.array(values_dict[item])))
                 count_the += 1
             else:
@@ -115,10 +114,10 @@ def main():
     parser = argparse.ArgumentParser(
         description="Creating data splits ...")
     parser.add_argument("--seed", dest="seed", type=int, default=0)
-    parser.add_argument("--path", dest="path", type=str, default="./datasets/wh-questions-2")
+    parser.add_argument("--path", dest="path", type=str, default="./datasets/wh-questions")
     parser.add_argument("--ratio", dest="ratio", type=float, default=0.7)
     parser.add_argument("--file", dest="input", type=str,
-        default="./corpus_data/lm_data.csv")
+        default="./corpus_data/lm_data_cleaned.csv")
     parser.add_argument("--verbose", dest="verbose", action='store_true')
     opt = parser.parse_args()
     split_train_valid_test(opt.seed, opt.path, opt.ratio, opt.input, opt.verbose)
