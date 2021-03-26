@@ -9,8 +9,31 @@ Then activate with `conda activate cs224nproject`.
 This is not strictly necessary, since the dataset splits already exist, but if you want to create a new split, run `python split_dataset.py`.
 
 ## Finetune model on dataset
+Run `python run.py --help` to see all options.
 
-## How to view run on Tensorboard
+`--mode {train,eval}` train model or evaluate an existing model.
+
+`--experiment_name EXPERIMENT_NAME` experiment name which will be used to save parameters from trained model
+
+`--num_epochs NUM_EPOCHS` number of epochs for which to train
+
+`--learning_rate LEARNING_RATE` learning rate for training
+
+`--batch_size BATCH_SIZE` batch size for training and validation
+
+`--model {distilbert,bert}` which BERT variant to use (use DistilBERT for faster training and evaluation)
+
+`--use_context` flag to determine if training or evaluation should incorporate preceding contextual information
+
+`--path_to_datasets PATH_TO_DATASETS` path to train/validation datasets for training (only needed for training)
+
+`--path_to_params PATH_TO_PARAMS` path to trained model parameters (only needed for evaluation)
+
+`--eval_dataset {test,valid}` 
+
+`--write_to_file` flag to determine if evaluated outputs are written to a file in `outputs_for_analysis`
+
+### How to view run on Tensorboard
 
 1. Start running the experiment on the VM
 2. In another window, log into the VM `ssh -L 16006:127.0.0.1:6006 [username]@[host]`
