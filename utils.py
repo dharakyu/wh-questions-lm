@@ -44,14 +44,18 @@ def read_dataset_split_sentence_only(path_to_dataset):
 
 	return sentences, labels
 
-def read_dataset_split_with_context(path_to_dataset):
+def read_dataset_split_with_context(path_to_dataset, num_train_examples=None):
 	"""Given a path to a dataset, return the complete dialogue inputs and the probability labels"""
 	df = pd.read_csv(path_to_dataset, sep='\t')
+	if num_train_examples is not None:
+		df = df[:num_train_examples]
+
+	print('num train examples', len(df))
 
 	contexts = list(df['PrecedingContext'])
 	sentences = list(df['Question'])
 
-	dialogues = [sentences[i] + ' [SEP] ' + contexts[i] for i in range(len(contexts))]
+	dialogues = [contexts[i] + '[SEP]' + sentences[i] for i in range(len(contexts))]
 
 	every_probs = list(df['Every'])
 	a_probs = list(df['A'])
