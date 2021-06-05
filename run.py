@@ -13,6 +13,7 @@ from trainer import Trainer
 
 import numpy as np
 from scipy.stats import wasserstein_distance
+from scipy.special import kl_div
 
 import torch
 from torch.utils.data.dataloader import DataLoader
@@ -28,11 +29,13 @@ def main():
 	parser.add_argument('--learning_rate', dest='learning_rate', type=float, default=1e-06)
 	parser.add_argument('--batch_size', dest='batch_size', type=int, default=32)
 	parser.add_argument('--model', dest='model', choices=['distilbert', 'bert'], default='bert')
+	parser.add_argument('--from_pretrained', dest='from_pretrained', default=None)
 	parser.add_argument('--use_context', dest='use_context', action='store_true')
 	parser.add_argument('--path_to_datasets', dest='path_to_datasets', default=os.path.join('datasets', 'wh-questions-question-context'))
 	parser.add_argument('--path_to_params', dest='path_to_params')
 	parser.add_argument('--eval_dataset', dest='eval_dataset', choices=['test', 'valid'], default='valid')
 	parser.add_argument('--write_to_file', dest='write_to_file', action='store_true')
+	parser.add_argument('--num_train_examples', dest='num_train_examples', type=int, default=None)
 	opt = parser.parse_args()
 	print(opt)
 
@@ -40,7 +43,10 @@ def main():
 	if opt.model == 'distilbert':
 		model = DistilBertForWhQuestionInference()
 	else:
-		model = BertForWhQuestionInference()
+		if opt.from_pretrained:
+			model = BertForWhQuestionInference(opt.from_pretrained)
+		else:
+			model = BertForWhQuestionInference(None)
 
 	# initialize tokenizer
 	tokenizer = BertTokenizerFast.from_pretrained('bert-base-uncased')
@@ -54,9 +60,14 @@ def main():
 		test_path = os.path.join(opt.path_to_datasets, 'test_db.csv')
 
 		if opt.use_context:
-			train_sentences, train_labels = read_dataset_split_with_context(train_path)
+			if opt.num_train_examples is None:
+				train_sentences, train_labels = read_dataset_split_with_context(train_path)
+			else:
+				train_sentences, train_labels = read_dataset_split_with_context(train_path, opt.num_train_examples)
+
 			val_sentences, val_labels = read_dataset_split_with_context(valid_path)
 			test_sentences, test_labels = read_dataset_split_with_context(test_path)
+			
 		else:
 			train_sentences, train_labels = read_dataset_split_sentence_only(train_path)
 			val_sentences, val_labels = read_dataset_split_sentence_only(valid_path)
@@ -104,6 +115,10 @@ def main():
 		outputs = []
 		all_labels = []
 		distances = []
+		l2_distances = []
+		kl_divergences = []
+
+		kl = torch.nn.KLDivLoss(reduction='batchmean')
 
 		for it, data in enumerate(loader):
 			# place data on the correct device
@@ -124,6 +139,10 @@ def main():
 		sentences = []
 		for i in range(len(all_labels)):
 			distances.append(wasserstein_distance(outputs[i].cpu(), all_labels[i].cpu()))
+			l2_distances.append(np.linalg.norm(outputs[i].cpu() - all_labels[i].cpu()))
+			logits = torch.log(outputs[i])
+			loss = kl(logits, all_labels[i])
+			kl_divergences.append(loss.item())
 			tokens = tokenizer.convert_ids_to_tokens(encodings[i])
 			sentence = tokenizer.convert_tokens_to_string(tokens)
 			sentence = sentence.replace('[CLS]', '')
@@ -134,6 +153,7 @@ def main():
 			rounded_label = str([round(i, 4) for i in all_labels[i].tolist()])
 			row = sentence + '\t' + rounded_output + '\t' + rounded_label + '\t' + str(distances[i]) + '\n'
 			rows.append(row)
+			print(outputs[i])
 			if i % 20 == 0:
 				print('sentence:\n', sentence)
 				print('prediction:\n', outputs[i])
@@ -142,10 +162,13 @@ def main():
 				print('------')
 
 		print('Wasserstein distance:', np.mean(distances))
+		print('L2 distance:', np.mean(l2_distances))
+		print('KL divergence', np.mean(kl_divergences))
 		for i in range(4):
-			predictions = [row[i] for row in outputs]
-			labels = [row[i] for row in all_labels]
-			print(np.corrcoef(predictions, labels)[0, 1])
+			predictions = torch.Tensor([row[i] for row in outputs]).cpu()
+			labels = torch.Tensor([row[i] for row in all_labels]).cpu()
+			corr = np.corrcoef(predictions, labels)
+			print(corr[0, 1])
 
 		if opt.write_to_file:
 			if opt.use_context:

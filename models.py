@@ -1,5 +1,5 @@
 import torch
-from transformers import DistilBertModel, BertModel
+from transformers import DistilBertModel, BertModel, BertConfig
 
 class DistilBertForWhQuestionInference(torch.nn.Module):
 	def __init__(self):
@@ -22,9 +22,12 @@ class DistilBertForWhQuestionInference(torch.nn.Module):
 		return output
 
 class BertForWhQuestionInference(torch.nn.Module):
-	def __init__(self):
+	def __init__(self, pretrained_path):
 		super(BertForWhQuestionInference, self).__init__()
-		self.l1 = BertModel.from_pretrained('bert-base-uncased')
+		if pretrained_path is None:
+			self.l1 = BertModel.from_pretrained('bert-base-uncased')
+		else:
+			self.l1 = BertModel.from_pretrained(pretrained_path)
 		self.pre_classifier = torch.nn.Linear(768, 768)
 		self.dropout = torch.nn.Dropout(0.3)
 		self.classifier = torch.nn.Linear(768, 4)
