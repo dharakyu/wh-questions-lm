@@ -8,6 +8,11 @@ Then activate with `conda activate cs224nproject`.
 ## Create a new dataset train/validation/test split
 This is not strictly necessary, since the dataset splits already exist, but if you want to create a new split, run `python split_dataset.py`.
 
+## Pretrain model on conversational dataset
+Run `python run_nor.py --help` or `python run_mlm.py --help` to see options for performing model pretraining.
+
+Warning: unless you have a massive GPU, use a very small batch size for training (batch size = 2 should work).
+
 ## Finetune model on dataset
 Run `python run.py --help` to see all options.
 
